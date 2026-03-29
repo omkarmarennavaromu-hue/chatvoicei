@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Omkar's Personal Assistant</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #000000;
+            height: 100vh;
+            overflow: hidden;
+            font-family: 'Segoe UI', 'Inter', 'Arial', sans-serif;
+            color: white;
+        }
+
+        /* Main container */
+        .container {
+            position: relative;
+            height: 100vh;
+            width: 100vw;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Top center text */
+        .title {
+            position: absolute;
+            top: 40px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            font-size: 1.5rem;
+            font-weight: 500;
+            letter-spacing: 1px;
+            background: linear-gradient(135deg, #fff, #a0a0ff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 0 0 20px rgba(100, 150, 255, 0.3);
+            z-index: 10;
+        }
+
+        /* Orb Container */
+        .orb-container {
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        /* Main Orb */
+        .orb {
+            width: 250px;
+            height: 250px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, rgba(0, 200, 255, 0.8), rgba(0, 100, 255, 0.4));
+            box-shadow: 0 0 50px rgba(0, 200, 255, 0.5), inset 0 0 30px rgba(255, 255, 255, 0.3);
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        /* Inner glow effect */
+        .orb::before {
+            content: '';
+            position: absolute;
+            top: 10%;
+            left: 10%;
+            width: 80%;
+            height: 80%;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, rgba(100, 200, 255, 0.6), rgba(0, 150, 255, 0.2));
+            filter: blur(10px);
+        }
+
+        /* Idle state: breathing glow */
+        .orb.idle {
+            animation: breathe 3s ease-in-out infinite;
+        }
+
+        @keyframes breathe {
+            0%, 100% {
+                transform: scale(1);
+                box-shadow: 0 0 40px rgba(0, 200, 255, 0.4);
+                opacity: 0.8;
+            }
+            50% {
+                transform: scale(1.05);
+                box-shadow: 0 0 80px rgba(0, 200, 255, 0.8);
+                opacity: 1;
+            }
+        }
+
+        /* Listening state: pulse reacts to mic input */
+        .orb.listening {
+            animation: pulse 0.2s ease-out infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+                box-shadow: 0 0 60px rgba(0, 200, 255, 0.8);
+            }
+            100% {
+                transform: scale(1.1);
+                box-shadow: 0 0 100px rgba(0, 200, 255, 1);
+            }
+        }
+
+        /* Thinking state: subtle shimmer/rotation */
+        .orb.thinking {
+            animation: shimmer 1.5s ease-in-out infinite, rotate 3s linear infinite;
+        }
+
+        @keyframes shimmer {
+            0%, 100% {
+                box-shadow: 0 0 40px rgba(0, 200, 255, 0.5), inset 0 0 30px rgba(255, 255, 255, 0.3);
+                filter: brightness(1);
+            }
+            50% {
+                box-shadow: 0 0 100px rgba(100, 200, 255, 1), inset 0 0 60px rgba(255, 255, 255, 0.6);
+                filter: brightness(1.2);
+            }
+        }
+
+        @keyframes rotate {
+            from {
+                transform: rotate(0deg);
+            }
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Speaking state: rhythmic pulse */
+        .orb.speaking {
+            animation: speakPulse 0.5s ease-in-out infinite;
+        }
+
+        @keyframes speakPulse {
+            0%, 100% {
+                transform: scale(1);
+                box-shadow: 0 0 50px rgba(0, 200, 255, 0.6);
+            }
+            50% {
+                transform: scale(1.15);
+                box-shadow: 0 0 120px rgba(0, 200, 255, 1);
+            }
+        }
+
+        /* Bottom bar */
+        .controls {
+            position: absolute;
+            bottom: 50px;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            border-radius: 50px;
+            margin: 0 auto;
+            width: fit-content;
+            z-index: 10;
+        }
+
+        select, button {
+            padding: 12px 24px;
+            font-size: 1rem;
+            border-radius: 25px;
+            border: 1px solid rgba(0, 200, 255, 0.5);
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        select:hover, button:hover {
+            background: rgba(0, 200, 255, 0.2);
+            border-color: rgba(0, 200, 255, 0.8);
+            transform: scale(1.05);
+        }
+
+        select:active, button:active {
+            transform: scale(0.95);
+        }
+
+        button {
+            background: linear-gradient(135deg, rgba(0, 150, 255, 0.3), rgba(0, 100, 255, 0.3));
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Status text */
+        .status {
+            position: absolute;
+            bottom: 150px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.6);
+            letter-spacing: 1px;
+            z-index: 10;
+        }
+
+        @media (max-width: 768px) {
+            .orb {
+                width: 180px;
+                height: 180px;
+            }
+            .title {
+                font-size: 1rem;
+                top: 20px;
+            }
+            select, button {
+                padding: 8px 16px;
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="title">✨ Welcome to Omkar's Personal Assistant ✨</div>
+        
+        <div class="orb-container">
+            <div class="orb idle" id="orb"></div>
+        </div>
+        
+        <div class="status" id="status">Ready</div>
+        
+        <div class="controls">
+            <select id="voiceSelect">
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Deep Male">Deep Male</option>
+                <option value="Clear Female">Clear Female</option>
+            </select>
+            <button id="startBtn">🎤 Start</button>
+        </div>
+    </div>
+
+    <script>
+        // DOM elements
+        const orb = document.getElementById('orb');
+        const startBtn = document.getElementById('startBtn');
+        const voiceSelect = document.getElementById('voiceSelect');
+        const statusDiv = document.getElementById('status');
+        
+        // State management
+        let mediaRecorder = null;
+        let audioChunks = [];
+        let isRecording = false;
+        let currentAudio = null;
+        
+        // API endpoint
+        const API_URL = 'http://localhost:5000/process_audio';
+        
+        // Set orb state
+        function setOrbState(state) {
+            // Remove all state classes
+            orb.classList.remove('idle', 'listening', 'thinking', 'speaking');
+            orb.classList.add(state);
+            
+            // Update status text
+            switch(state) {
+                case 'idle':
+                    statusDiv.textContent = 'Ready';
+                    break;
+                case 'listening':
+                    statusDiv.textContent = '🎙️ Listening...';
+                    break;
+                case 'thinking':
+                    statusDiv.textContent = '💭 Thinking...';
+                    break;
+                case 'speaking':
+                    statusDiv.textContent = '🔊 Speaking...';
+                    break;
+            }
+        }
+        
+        // Update listening animation with mic input
+        let audioContext = null;
+        let source = null;
+        let analyser = null;
+        
+        async function setupMicVisualization(stream) {
+            if (audioContext) {
+                await audioContext.close();
+            }
+            
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            analyser = audioContext.createAnalyser();
+            analyser.fftSize = 256;
+            
+            source = audioContext.createMediaStreamSource(stream);
+            source.connect(analyser);
+            
+            // Start animation loop
+            function updatePulse() {
+                if (!isRecording || orb.classList.contains('listening') === false) {
+                    requestAnimationFrame(updatePulse);
+                    return;
+                }
+                
+                const dataArray = new Uint8Array(analyser.frequencyBinCount);
+                analyser.getByteFrequencyData(dataArray);
+                
+                // Calculate average volume
+                let sum = 0;
+                for (let i = 0; i < dataArray.length; i++) {
+                    sum += dataArray[i];
+                }
+                const avg = sum / dataArray.length;
+                const intensity = Math.min(1, avg / 128);
+                
+                // Dynamically scale the orb based on volume
+                const scale = 1 + (intensity * 0.2);
+                const glowIntensity = 40 + (intensity * 80);
+                
+                orb.style.transform = `scale(${scale})`;
+                orb.style.boxShadow = `0 0 ${glowIntensity}px rgba(0, 200, 255, 0.8)`;
+                
+                requestAnimationFrame(updatePulse);
+            }
+            
+            updatePulse();
+        }
+        
+        // Start recording
+        async function startRecording() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                
+                mediaRecorder = new MediaRecorder(stream);
+                audioChunks = [];
+                
+                mediaRecorder.ondataavailable = (event) => {
+                    if (event.data.size > 0) {
+                        audioChunks.push(event.data);
+                    }
+                };
+                
+                mediaRecorder.onstop = async () => {
+                    // Stop mic visualization
+                    if (audioContext) {
+                        await audioContext.close();
+                        audioContext = null;
+                    }
+                    
+                    // Stop all tracks
+                    stream.getTracks().forEach(track => track.stop());
+                    
+                    // Create audio blob
+                    const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                    
+                    // Send to backend
+                    await sendAudioToBackend(audioBlob);
+                };
+                
+                mediaRecorder.start();
+                isRecording = true;
+                setOrbState('listening');
+                
+                // Setup visualization
+                await setupMicVisualization(stream);
+                
+                // Auto-stop after 10 seconds of silence or max 30 seconds
+                setTimeout(() => {
+                    if (isRecording) {
+                        stopRecording();
+                    }
+                }, 30000);
+                
+            } catch (error) {
+                console.error('Error accessing microphone:', error);
+                statusDiv.textContent = '❌ Microphone access denied';
+                setOrbState('idle');
+                startBtn.disabled = false;
+            }
+        }
+        
+        // Stop recording
+        function stopRecording() {
+            if (mediaRecorder && isRecording) {
+                mediaRecorder.stop();
+                isRecording = false;
+                setOrbState('thinking');
+            }
+        }
+        
+        // Send audio to backend
+        async function sendAudioToBackend(audioBlob) {
+            const formData = new FormData();
+            formData.append('audio', audioBlob, 'recording.wav');
+            formData.append('voice', voiceSelect.value);
+            
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Play audio response
+                    await playAudio(data.audio_url);
+                } else {
+                    console.error('Backend error:', data.error);
+                    statusDiv.textContent = '❌ Error processing request';
+                    setOrbState('idle');
+                    startBtn.disabled = false;
+                }
+            } catch (error) {
+                console.error('Network error:', error);
+                statusDiv.textContent = '❌ Network error';
+                setOrbState('idle');
+                startBtn.disabled = false;
+            }
+        }
+        
+        // Play audio from URL
+        async function playAudio(audioUrl) {
+            return new Promise((resolve, reject) => {
+                const audio = new Audio(`http://localhost:5000${audioUrl}`);
+                currentAudio = audio;
+                
+                audio.onplay = () => {
+                    setOrbState('speaking');
+                };
+                
+                audio.onended = () => {
+                    setOrbState('idle');
+                    startBtn.disabled = false;
+                    resolve();
+                };
+                
+                audio.onerror = (error) => {
+                    console.error('Audio playback error:', error);
+                    setOrbState('idle');
+                    startBtn.disabled = false;
+                    reject(error);
+                };
+                
+                audio.play().catch(error => {
+                    console.error('Playback failed:', error);
+                    setOrbState('idle');
+                    startBtn.disabled = false;
+                    reject(error);
+                });
+            });
+        }
+        
+        // Handle start button click
+        startBtn.addEventListener('click', async () => {
+            if (isRecording) {
+                stopRecording();
+            } else {
+                startBtn.disabled = true;
+                await startRecording();
+            }
+        });
+        
+        // Clean up on page unload
+        window.addEventListener('beforeunload', () => {
+            if (mediaRecorder && isRecording) {
+                mediaRecorder.stop();
+            }
+            if (currentAudio) {
+                currentAudio.pause();
+            }
+            if (audioContext) {
+                audioContext.close();
+            }
+        });
+        
+        // Initial state
+        setOrbState('idle');
+        
+        // Check backend health on load
+        async function checkBackend() {
+            try {
+                const response = await fetch('http://localhost:5000/health');
+                if (response.ok) {
+                    console.log('Backend is healthy');
+                } else {
+                    console.warn('Backend health check failed');
+                    statusDiv.textContent = '⚠️ Backend not available';
+                }
+            } catch (error) {
+                console.error('Cannot connect to backend:', error);
+                statusDiv.textContent = '⚠️ Backend not connected';
+            }
+        }
+        
+        checkBackend();
+    </script>
+</body>
+</html>
